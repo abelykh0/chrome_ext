@@ -10,17 +10,17 @@ chrome.runtime.onMessage.addListener(
       }
       
       // Return true if you want to use sendResponse asynchronously
-      return true;
+      return false;
     }
   );
-
-declare namespace SiebelApp {
-    function CommandManager(): any;
-}
 
 function extractACodeMatches(input: string): string[] {
     const regex = /(?:^|[\s\r\n]+)(A\d{6})(?=[\s\r\n]+|$)/g;
     return Array.from(input.matchAll(regex), (match) => match[1]);
+}
+
+function save() {
+    chrome.runtime.sendMessage({ action: "save" });
 }
 
 function doWork(): void {
@@ -36,16 +36,9 @@ function doWork(): void {
     const matches = extractACodeMatches(descriptionBox.value);
 
     if (matches.length > 0) {
+        promotionNameBox.focus();
         promotionNameBox.value = promotionName.trimEnd() + ' ' + matches.join(' ');
-        if (typeof SiebelApp !== 'undefined') {
-            // Ctrl+S - save
-            SiebelApp.CommandManager().ProcessAccelerator(
-                new KeyboardEvent('keydown', { 'ctrlKey': true, 'key': 's' }),
-                83
-            );
-        }
-    }
 
-    // Go to previous page - click on link
-    
+        chrome.runtime.sendMessage({ action: "save" });
+    }
 }
